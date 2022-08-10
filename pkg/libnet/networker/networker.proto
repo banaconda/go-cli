@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+option go_package = "pkg/libnet/networker";
+
+package networker;
+
+service Networker {
+    // Link
+    rpc ShowNetLink(NetLinkQuery) returns (NetLinkResponse) {}
+    rpc SetNetLinkMac(NetLinkQuery) returns (NetLinkResponse) {}
+    rpc SetNetLinkUp(NetLinkQuery) returns (NetLinkResponse) {}
+    rpc SetNetLinkDown(NetLinkQuery) returns (NetLinkResponse) {}
+
+    // Bridge
+    rpc ShowBridge(BridgeQuery) returns (NetLinkResponse) {}
+    rpc ShowBridgeSlave(BridgeQuery) returns (NetLinkResponse) {}
+    rpc AddBridge(BridgeQuery) returns (NetLinkResponse) {}
+    rpc DelBridge(BridgeQuery) returns (NetLinkResponse) {}
+    rpc SetBridgeMaster(BridgeQuery) returns (NetLinkResponse) {}
+    rpc UnsetBridgeMaster(BridgeQuery) returns (NetLinkResponse) {}
+
+    // Veth
+    rpc ShowVeth(VethQuery) returns (NetLinkResponse) {}
+    rpc AddVeth(VethQuery) returns (NetLinkResponse) {}
+    rpc DelVeth(VethQuery) returns (NetLinkResponse) {}
+
+    // Vlan
+    rpc ShowVlan(VlanQuery) returns (NetLinkResponse) {}
+    rpc AddVlan(VlanQuery) returns (NetLinkResponse) {}
+    rpc DelVlan(VlanQuery) returns (NetLinkResponse) {}
+
+    // IP ADDR
+    rpc ShowAddr(AddrQuery) returns (AddrResponse){}
+    rpc AddAddr(AddrQuery) returns (AddrResponse) {}
+    rpc DelAddr(AddrQuery) returns (AddrResponse) {}
+
+    // IP RULE
+    rpc ShowRule(RuleQuery) returns (RuleResponse){}
+    rpc AddRule(RuleQuery) returns (RuleResponse) {}
+    rpc DelRule(RuleQuery) returns (RuleResponse) {}
+
+    // IP ROUTE
+    rpc ShowRoute(RouteQuery) returns (RouteResponse){}
+    rpc AddRoute(RouteQuery) returns (RouteResponse) {}
+    rpc DelRoute(RouteQuery) returns (RouteResponse) {}
+}
+
+// LINK
+message NetLink {
+    string name = 1;
+    string type = 2;
+    string mac = 3;
+    string status = 4;
+
+    string parent = 5;
+    string master = 6;
+    int32 vlanId = 7;
+    string vlanProtocol = 8;
+}
+
+message NetLinkQuery {
+    string name = 1;
+    string mac = 2;
+}
+
+message BridgeQuery {
+    string name = 1;
+    string slaveName = 2;
+}
+
+message VethQuery {
+    string name = 1;
+    string peerName = 2;
+}
+
+message VlanQuery {
+    string name = 1;
+    string parentName = 2;
+    int32 vlanId = 3;
+}
+
+message NetLinkResponse {
+    repeated NetLink netLinks = 1;
+}
+
+// ADDR
+message Addr {
+    string name = 1; // bridge name
+    string ipWithMask = 2;
+}
+
+message AddrQuery {
+    string name = 1;
+    string ipWithMask = 2;
+}
+
+message AddrResponse {
+    repeated Addr addrs = 1;
+}
+
+// RULE
+message Rule {
+    int32 priority = 1;
+    string table = 2;
+    string src = 3;
+    string dst = 4;
+    string sPort = 6;
+    string dPort = 5;
+    string ipProto = 7;
+    string iIfName = 8;
+    string oIfName = 9;
+}
+
+message RuleQuery {
+    int32 priority = 1;
+    string table = 2;
+    string src = 3;
+    string dst = 4;
+    string sPort = 6;
+    string dPort = 5;
+    string ipProto = 7;
+}
+
+message RuleResponse {
+    repeated Rule rules = 1;
+}
+
+// ROUTE
+message Route {
+    string table = 1;
+    string protocol = 2;
+    string destination = 3;
+    string source = 4;
+    string nextHop = 5;
+    string device = 6;
+}
+
+message RouteQuery {
+    string table = 1;
+    string protocol = 2;
+    string destination = 3;
+    string source = 4;
+    string nextHop = 5;
+    string device = 6;
+}
+
+message RouteResponse {
+    repeated Route routes = 1;
+}
