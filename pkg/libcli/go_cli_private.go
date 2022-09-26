@@ -118,7 +118,6 @@ func (cli *GoCli) printHelp() {
 // tab completion
 func (cli *GoCli) tabCompletion() {
 	args := cli.getArgs()
-	lastArg := args[len(args)-1] // get last arg
 	commandElemSlice := cli.getCommandElemList(cli.getArgs()...)
 	// case 1: no match							eg. # history eee
 	// case 2: incomplete sentece.				eg. # history cle
@@ -133,6 +132,7 @@ func (cli *GoCli) tabCompletion() {
 
 	// case 2: incomplete sentence
 	if len(commandElemSlice) == 1 && !cli.getIsLastCharEmpty() {
+		lastArg := args[len(args)-1] // get last arg
 		cli.logger.Info("one match")
 
 		// clear line and auto complete to cli buf
@@ -282,34 +282,41 @@ func (cli *GoCli) getCommandElemList(args ...string) []*CommandElem {
 	commandElemSlice := make([]*CommandElem, 0)
 	commandMap := cli.commandMap
 	var commandElem *CommandElem = nil
-	for _, arg := range args {
-		cli.logger.Info("arg=%s", arg)
-		commandElem = nil
-		for regex := range commandMap {
-			cli.logger.Info("regex=%s", regex)
-			match, _ := regexp.MatchString(regex, arg)
-			if match {
-				if libutil.GetRegexHelpString(regex) == regex && arg != regex { // exact string
-					continue
+
+	if args != nil {
+		for _, arg := range args {
+			cli.logger.Info("arg=%s", arg)
+			commandElem = nil
+			for regex := range commandMap {
+				cli.logger.Info("regex=%s", regex)
+				match, _ := regexp.MatchString(regex, arg)
+				if match {
+					if libutil.GetRegexHelpString(regex) == regex && arg != regex { // exact string
+						continue
+					}
+
+					cli.logger.Info("match")
+					commandElem = commandMap[regex]
+					commandMap = commandElem.commandMap
+					break
+				}
+			}
+
+			if commandElem == nil {
+				cli.logger.Info("commandElem nil")
+				for key := range commandMap {
+					if !strings.HasPrefix(key, arg) {
+						continue
+					}
+					commandElemSlice = append(commandElemSlice, commandMap[key])
 				}
 
-				cli.logger.Info("match")
-				commandElem = commandMap[regex]
-				commandMap = commandElem.commandMap
 				break
 			}
 		}
-
-		if commandElem == nil {
-			cli.logger.Info("commandElem nil")
-			for key := range commandMap {
-				if !strings.HasPrefix(key, arg) {
-					continue
-				}
-				commandElemSlice = append(commandElemSlice, commandMap[key])
-			}
-
-			break
+	} else {
+		for key := range commandMap {
+			commandElemSlice = append(commandElemSlice, commandMap[key])
 		}
 	}
 
