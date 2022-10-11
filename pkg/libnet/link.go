@@ -29,7 +29,7 @@ func getLinkTypeString(link netlink.Link) string {
 func (s *server) listLink() ([]*networker.NetLink, error) {
 	linkSlice, err := netlink.LinkList()
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (s *server) listLink() ([]*networker.NetLink, error) {
 			vlanProtocol = netlink.VlanProtocolToString[vlan.VlanProtocol]
 		}
 
-		netLogger.Info("%s %s %v", typeName, reflect.TypeOf(link), link)
+		logger.Info("%s %s %v", typeName, reflect.TypeOf(link), link)
 		linkList = append(linkList, &networker.NetLink{
 			Name:         link.Attrs().Name,
 			Type:         typeName,
@@ -82,13 +82,13 @@ func (s *server) ShowNetLink(ctx context.Context, in *networker.NetLinkQuery) (*
 func (s *server) SetNetLinkMac(ctx context.Context, in *networker.NetLinkQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	err = netlink.LinkSetHardwareAddr(link, net.HardwareAddr(in.Mac))
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -98,7 +98,7 @@ func (s *server) SetNetLinkMac(ctx context.Context, in *networker.NetLinkQuery) 
 func (s *server) SetNetLinkUp(ctx context.Context, in *networker.NetLinkQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkSetUp(link)
@@ -108,7 +108,7 @@ func (s *server) SetNetLinkUp(ctx context.Context, in *networker.NetLinkQuery) (
 func (s *server) SetNetLinkDown(ctx context.Context, in *networker.NetLinkQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkSetDown(link)
@@ -148,13 +148,13 @@ func (s *server) AddBridge(ctx context.Context, in *networker.BridgeQuery) (*net
 	newBridge := &netlink.Bridge{LinkAttrs: linkAttrs}
 	err := netlink.LinkAdd(newBridge)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkSetUp(link)
@@ -173,7 +173,7 @@ func (s *server) AddBridge(ctx context.Context, in *networker.BridgeQuery) (*net
 func (s *server) DelBridge(ctx context.Context, in *networker.BridgeQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkDel(link)
@@ -183,17 +183,17 @@ func (s *server) DelBridge(ctx context.Context, in *networker.BridgeQuery) (*net
 func (s *server) SetBridgeMaster(ctx context.Context, in *networker.BridgeQuery) (*networker.NetLinkResponse, error) {
 	bridge, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	slave, err := netlink.LinkByName(in.SlaveName)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	err = netlink.LinkSetMaster(slave, bridge)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -203,13 +203,13 @@ func (s *server) SetBridgeMaster(ctx context.Context, in *networker.BridgeQuery)
 func (s *server) UnsetBridgeMaster(ctx context.Context, in *networker.BridgeQuery) (*networker.NetLinkResponse, error) {
 	slave, err := netlink.LinkByName(in.SlaveName)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	err = netlink.LinkSetNoMaster(slave)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -238,18 +238,18 @@ func (s *server) AddVeth(ctx context.Context, in *networker.VethQuery) (*network
 	}
 	err := netlink.LinkAdd(newVeth)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	link1, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	link2, err := netlink.LinkByName(in.PeerName)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkSetUp(link1)
@@ -268,7 +268,7 @@ func (s *server) AddVeth(ctx context.Context, in *networker.VethQuery) (*network
 func (s *server) DelVeth(ctx context.Context, in *networker.VethQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkDel(link)
@@ -293,7 +293,7 @@ func (s *server) ShowVlan(ctx context.Context, in *networker.VlanQuery) (*networ
 func (s *server) AddVlan(ctx context.Context, in *networker.VlanQuery) (*networker.NetLinkResponse, error) {
 	parent, err := netlink.LinkByName(in.ParentName)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -308,13 +308,13 @@ func (s *server) AddVlan(ctx context.Context, in *networker.VlanQuery) (*network
 
 	err = netlink.LinkAdd(newVlan)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkSetUp(link)
@@ -326,7 +326,7 @@ func (s *server) AddVlan(ctx context.Context, in *networker.VlanQuery) (*network
 func (s *server) DelVlan(ctx context.Context, in *networker.VlanQuery) (*networker.NetLinkResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 	netlink.LinkDel(link)

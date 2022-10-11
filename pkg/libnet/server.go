@@ -3,6 +3,7 @@ package libnet
 import (
 	"fmt"
 	"go-cli/pkg/libnet/networker"
+	"go-cli/pkg/libutil"
 	"log"
 	"net"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var netLogger nblogger.Logger
+var logger nblogger.Logger
 
 type server struct {
 	networker.UnimplementedNetworkerServer
@@ -20,16 +21,16 @@ type server struct {
 func handlerRequests(host string, port int) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
-		netLogger.Error("failed to listen: %v", err)
+		logger.Error("failed to listen: %v", err)
 		panic(err)
 	}
 
 	s := grpc.NewServer()
 
 	networker.RegisterNetworkerServer(s, &server{})
-	netLogger.Info("server listening at %v", lis.Addr())
+	logger.Info("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		netLogger.Error("failed to serve: %v", err)
+		logger.Error("failed to serve: %v", err)
 		panic(err)
 	}
 }
@@ -40,10 +41,10 @@ func NetServer() {
 		os.MkdirAll("log", 0700)
 	}
 
-	logger, err := nblogger.NewLogger(netLogPath, nblogger.Info, 1000, nblogger.LstdFlags|nblogger.Lshortfile|nblogger.Lmicroseconds)
+	var err error
+	logger, err = nblogger.NewLogger(netLogPath, nblogger.Info, 1000, nblogger.LstdFlags|nblogger.Lshortfile|nblogger.Lmicroseconds)
 	if err != nil {
 		log.Fatalf("logger init fail: %v", err)
 	}
-	netLogger = logger
-	handlerRequests("", 10000)
+	handlerRequests("", libutil.NET_PORT)
 }

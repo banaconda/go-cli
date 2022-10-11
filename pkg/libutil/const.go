@@ -11,9 +11,16 @@ const CidrRegex = "^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.(?:25[0-5]|2[0
 const MacRegex = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 const PortRegex = "^([0-9]+)-([0-9]+)$"
 const ProtoRegex = "^(tcp|udp|icmp|icmpv6)$"
-const NumberRegex = "^[0-9]+$"
-const StringRegex = "^[a-zA-Z0-9]+$"
+const NumberRegex = "[0-9]+"
+const NameRegex = "([a-zA-Z0-9_\\-\\.])+"
 const TableRegex = "^[0-9]+$|^local$|^main$|^default$"
+const FilePathRegex = ".+"
+const UnitRegex = "[0-9]+[kKmMgGtT]?"
+
+const (
+	NET_PORT = 10000
+	VM_PORT  = 10001
+)
 
 // get help string of regex
 func GetRegexHelpString(regex string) string {
@@ -30,10 +37,14 @@ func GetRegexHelpString(regex string) string {
 		return "PROTOCOL(tcp|udp|icmp|icmpv6)"
 	case NumberRegex:
 		return "NUMBER"
-	case StringRegex:
-		return "STRING(only number and letter)"
+	case NameRegex:
+		return "NAME(only number, letter, underscore, hyphen and dot)"
 	case TableRegex:
 		return "TABLE(0-255|local|main|default)"
+	case FilePathRegex:
+		return "FILE_PATH(only number, letter and /._-~)"
+	case UnitRegex:
+		return "UNIT(k|m|g|t)"
 	default:
 		return regex
 	}

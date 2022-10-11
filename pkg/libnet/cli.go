@@ -21,7 +21,8 @@ var ncef = libcli.NewCommandElem
 
 func InitCli(cli *libcli.GoCli) {
 	var err error
-	conn, err = grpc.Dial("localhost:10000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err = grpc.Dial(fmt.Sprintf("%s:%d", "localhost", libutil.NET_PORT),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -56,6 +57,7 @@ type networkerReponse interface {
 		*networker.RouteResponse
 }
 
+// networkerQuery interface
 type queryInterface[Q networkerQuery, R networkerReponse] func(context.Context, Q, ...grpc.CallOption) (R, error)
 
 func query[Q networkerQuery, R networkerReponse](f queryInterface[Q, R], queryElem Q) (R, error) {
@@ -63,9 +65,9 @@ func query[Q networkerQuery, R networkerReponse](f queryInterface[Q, R], queryEl
 	defer cancel()
 	r, err := f(ctx, queryElem)
 	if err != nil {
-		netLogger.Warn("%v", err)
+		logger.Warn("%v", err)
 	} else {
-		netLogger.Info("%v", r)
+		logger.Info("%v", r)
 	}
 
 	return r, err
@@ -88,7 +90,7 @@ func initCliLink(cli *libcli.GoCli) {
 	cli.AddCommandElem(
 		nce("link", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "link name"),
+		nce(libutil.NameRegex, "link name"),
 		nce("mac", ""),
 		nce("set", "set link mac by link name"),
 		ncef(libutil.MacRegex, "mac address", func(args []string) {
@@ -108,7 +110,7 @@ func initCliLink(cli *libcli.GoCli) {
 	cli.AddCommandElem(
 		nce("link", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "link name"),
+		nce(libutil.NameRegex, "link name"),
 		ncef("up", "", func(args []string) {
 			resp, err := query(client.SetNetLinkUp, &networker.NetLinkQuery{
 				Name: args[2],
@@ -124,7 +126,7 @@ func initCliLink(cli *libcli.GoCli) {
 	cli.AddCommandElem(
 		nce("link", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "link name"),
+		nce(libutil.NameRegex, "link name"),
 		ncef("down", "", func(args []string) {
 			resp, err := query(client.SetNetLinkDown, &networker.NetLinkQuery{
 				Name: args[2],
@@ -153,7 +155,7 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("bridge", ""),
 		nce("show", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "bridge name"),
+		nce(libutil.NameRegex, "bridge name"),
 		ncef("slave", "show bridge slaves by bridge name", func(args []string) {
 			resp, err := query(client.ShowBridgeSlave, &networker.BridgeQuery{
 				Name: args[3],
@@ -170,12 +172,12 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("bridge", ""),
 		nce("set", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "bridge name"),
+		nce(libutil.NameRegex, "bridge name"),
 		nce("slave", ""),
-		ncef(libutil.StringRegex, "slave name", func(args []string) {
+		ncef(libutil.NameRegex, "slave name", func(args []string) {
 			resp, err := query(client.SetBridgeMaster, &networker.BridgeQuery{
 				Name:      args[3],
-				SlaveName: args[6],
+				SlaveName: args[5],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -189,12 +191,12 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("bridge", ""),
 		nce("unset", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "bridge name"),
+		nce(libutil.NameRegex, "bridge name"),
 		nce("slave", ""),
-		ncef(libutil.StringRegex, "slave name", func(args []string) {
+		ncef(libutil.NameRegex, "slave name", func(args []string) {
 			resp, err := query(client.UnsetBridgeMaster, &networker.BridgeQuery{
 				Name:      args[3],
-				SlaveName: args[6],
+				SlaveName: args[5],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -208,9 +210,9 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("bridge", ""),
 		nce("add", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "bridge name", func(args []string) {
+		ncef(libutil.NameRegex, "bridge name", func(args []string) {
 			resp, err := query(client.AddBridge, &networker.BridgeQuery{
-				Name: args[2],
+				Name: args[3],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -224,9 +226,9 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("bridge", ""),
 		nce("del", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "bridge name", func(args []string) {
+		ncef(libutil.NameRegex, "bridge name", func(args []string) {
 			resp, err := query(client.DelBridge, &networker.BridgeQuery{
-				Name: args[2],
+				Name: args[3],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -252,13 +254,13 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("veth", ""),
 		nce("add", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "veth name"),
+		nce(libutil.NameRegex, "veth name"),
 		nce("peer", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "peer name", func(args []string) {
+		ncef(libutil.NameRegex, "peer name", func(args []string) {
 			resp, err := query(client.AddVeth, &networker.VethQuery{
-				Name:     args[2],
-				PeerName: args[5],
+				Name:     args[3],
+				PeerName: args[6],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -271,9 +273,9 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("veth", ""),
 		nce("del", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "veth name", func(args []string) {
+		ncef(libutil.NameRegex, "veth name", func(args []string) {
 			resp, err := query(client.DelVeth, &networker.VethQuery{
-				Name: args[2],
+				Name: args[3],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -300,7 +302,7 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("show", ""),
 		nce("id", ""),
 		ncef(libutil.NumberRegex, "show vlan by vlan id", func(args []string) {
-			vlanId, _ := strconv.Atoi(args[2])
+			vlanId, _ := strconv.Atoi(args[3])
 			resp, err := query(client.ShowVlan, &networker.VlanQuery{
 				VlanId: int32(vlanId),
 			})
@@ -316,10 +318,10 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("vlan", ""),
 		nce("add", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "vlan name"),
+		nce(libutil.NameRegex, "vlan name"),
 		nce("parent", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "parent name"),
+		nce(libutil.NameRegex, "parent name"),
 		nce("id", ""),
 		ncef(libutil.NumberRegex, "vlan id", func(args []string) {
 			vlanId, _ := strconv.Atoi(args[8])
@@ -340,9 +342,9 @@ func initCliLink(cli *libcli.GoCli) {
 		nce("vlan", ""),
 		nce("del", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "vlan name", func(args []string) {
+		ncef(libutil.NameRegex, "vlan name", func(args []string) {
 			resp, err := query(client.DelVlan, &networker.VlanQuery{
-				Name: args[2],
+				Name: args[3],
 			})
 			if err != nil {
 				fmt.Printf("%v\n", err)
@@ -370,7 +372,7 @@ func initCliAddr(cli *libcli.GoCli) {
 		nce("addr", ""),
 		nce("show", ""),
 		nce("name", ""),
-		ncef(libutil.StringRegex, "address name", func(args []string) {
+		ncef(libutil.NameRegex, "address name", func(args []string) {
 			resp, err := query(client.ShowAddr, &networker.AddrQuery{
 				Name: args[3],
 			})
@@ -386,7 +388,7 @@ func initCliAddr(cli *libcli.GoCli) {
 		nce("addr", ""),
 		nce("add", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "address name"),
+		nce(libutil.NameRegex, "address name"),
 		nce("ipWithMask", ""),
 		ncef(libutil.CidrRegex, "ip with mask", func(args []string) {
 			resp, err := query(client.AddAddr, &networker.AddrQuery{
@@ -405,7 +407,7 @@ func initCliAddr(cli *libcli.GoCli) {
 		nce("addr", ""),
 		nce("del", ""),
 		nce("name", ""),
-		nce(libutil.StringRegex, "address name"),
+		nce(libutil.NameRegex, "address name"),
 		nce("ipWithMask", ""),
 		ncef(libutil.CidrRegex, "ip with mask", func(args []string) {
 			resp, err := query(client.DelAddr, &networker.AddrQuery{
@@ -512,13 +514,13 @@ func ruleAddCombination(cli *libcli.GoCli, combinationArgs []nameRegex) {
 		}
 		ceArgs[len(ceArgs)-1].Func = queryFunc
 
-		netLogger.Info("add rule %v", args)
+		logger.Info("add rule %v", args)
 
 		cli.AddCommandElem(
 			ceArgs...)
 
 	}
-	netLogger.Info("len %d", len(allCombination))
+	logger.Info("len %d", len(allCombination))
 }
 
 func initCliRule(cli *libcli.GoCli) {

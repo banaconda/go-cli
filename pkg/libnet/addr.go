@@ -11,7 +11,7 @@ import (
 func (s *server) ShowAddr(ctx context.Context, in *networker.AddrQuery) (*networker.AddrResponse, error) {
 	linkList, err := netlink.LinkList()
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -19,7 +19,7 @@ func (s *server) ShowAddr(ctx context.Context, in *networker.AddrQuery) (*networ
 	for _, link := range linkList {
 		addrs, err := netlink.AddrList(link, 0)
 		if err != nil {
-			netLogger.Warn("%v\n", err)
+			logger.Warn("%v\n", err)
 			return nil, err
 		}
 
@@ -27,7 +27,7 @@ func (s *server) ShowAddr(ctx context.Context, in *networker.AddrQuery) (*networ
 			if len(addr.IP) == net.IPv6len {
 				continue
 			}
-			netLogger.Info("%s %v", link.Attrs().Name, addr)
+			logger.Info("%s %v", link.Attrs().Name, addr)
 
 			if in.Name == "" || in.Name == link.Attrs().Name {
 				addrList = append(addrList, &networker.Addr{
@@ -44,19 +44,19 @@ func (s *server) ShowAddr(ctx context.Context, in *networker.AddrQuery) (*networ
 func (s *server) AddAddr(ctx context.Context, in *networker.AddrQuery) (*networker.AddrResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	addr, err := netlink.ParseAddr(in.IpWithMask)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	err = netlink.AddrAdd(link, addr)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -66,19 +66,19 @@ func (s *server) AddAddr(ctx context.Context, in *networker.AddrQuery) (*network
 func (s *server) DelAddr(ctx context.Context, in *networker.AddrQuery) (*networker.AddrResponse, error) {
 	link, err := netlink.LinkByName(in.Name)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	addr, err := netlink.ParseAddr(in.IpWithMask)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
 	err = netlink.AddrDel(link, addr)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 

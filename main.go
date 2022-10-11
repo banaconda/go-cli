@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-cli/pkg/libcli"
 	"go-cli/pkg/libnet"
+	"go-cli/pkg/libvm"
 	"os"
 
 	nblogger "github.com/banaconda/nb-logger"
@@ -11,6 +12,7 @@ import (
 
 func main() {
 	go libnet.NetServer()
+	go libvm.VmServer()
 
 	cliLogPath := "log/cli.log"
 	if _, err := os.Stat("log/"); os.IsNotExist(err) {
@@ -26,6 +28,7 @@ func main() {
 	cli := libcli.GoCli{}
 	cli.Init(cliLogger)
 	libnet.InitCli(&cli)
+	libvm.InitCli(&cli)
 
 	cli.Run()
 }

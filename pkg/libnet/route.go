@@ -14,7 +14,7 @@ import (
 func (s *server) ShowRoute(ctx context.Context, in *networker.RouteQuery) (*networker.RouteResponse, error) {
 	linkList, err := netlink.LinkList()
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -23,12 +23,12 @@ func (s *server) ShowRoute(ctx context.Context, in *networker.RouteQuery) (*netw
 		routes, err := netlink.RouteListFiltered(unix.AF_INET,
 			&netlink.Route{LinkIndex: link.Attrs().Index}, netlink.RT_FILTER_OIF|netlink.RT_FILTER_TABLE)
 		if err != nil {
-			netLogger.Warn("%v\n", err)
+			logger.Warn("%v\n", err)
 			return nil, err
 		}
 
 		for _, route := range routes {
-			netLogger.Info("%s %v %v %v", link.Attrs().Name, route, route.Protocol, route.Scope)
+			logger.Info("%s %v %v %v", link.Attrs().Name, route, route.Protocol, route.Scope)
 
 			if (route.Gw != nil && len(route.Gw) == net.IPv6len) || (route.Src != nil &&
 				len(route.Src) == net.IPv6len) || (route.Dst != nil && len(route.Dst.IP) == net.IPv6len) ||
@@ -98,7 +98,7 @@ func (s *server) AddRoute(ctx context.Context, in *networker.RouteQuery) (*netwo
 
 	err := netlink.RouteAdd(route)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -133,7 +133,7 @@ func (s *server) DelRoute(ctx context.Context, in *networker.RouteQuery) (*netwo
 
 	err := netlink.RouteDel(route)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 

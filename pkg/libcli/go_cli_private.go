@@ -162,15 +162,19 @@ func (cli *GoCli) tabCompletion() {
 		cli.logger.Info("multi %d", len(commandElemSlice))
 
 		if len(commandElemSlice) == 1 { // only one match
+			cli.logger.Info("only one match")
 			if libutil.GetRegexHelpString(commandElemSlice[0].Regex) == commandElemSlice[0].Regex {
+				cli.logger.Info("exact string match %s", commandElemSlice[0].Regex)
 				cli.buf = append(cli.buf, []byte(commandElemSlice[0].Regex)...) // the Regex is the exact string
 				cli.buf = append(cli.buf, ' ')
 			} else {
+				cli.logger.Info("regex match")
 				fmt.Printf("\n")
 				helpString := libutil.GetRegexHelpString(commandElemSlice[0].Regex)
 				fmt.Printf(" %s", helpString)
 			}
 		} else { // multi match then print one line help
+			cli.logger.Info("multi match")
 			fmt.Printf("\n")
 
 			helpStringSlice := make([]string, 0)
@@ -186,11 +190,6 @@ func (cli *GoCli) tabCompletion() {
 
 			for _, helphelpString := range helpStringSlice {
 				fmt.Printf("%*s", helpStringMaxLength+1, helphelpString)
-			}
-
-			// auto add space
-			if cli.getBufLen() != 0 && cli.buf[cli.getBufLen()-1] != ' ' {
-				cli.buf = append(cli.buf, ' ')
 			}
 		}
 		fmt.Printf("\n# %s", cli.buf)
@@ -256,13 +255,17 @@ func (cli *GoCli) selectHistory(direction int) {
 }
 
 func (cli *GoCli) getCommandElemByExactMatch(args ...string) *CommandElem {
+	cli.logger.Info("getCommandElemByExactMatch %v", args)
 	commandMap := cli.commandMap
 	var commandElem *CommandElem = nil
 	for _, arg := range args {
 		commandElem = nil
 		for regex := range commandMap {
 			match, _ := regexp.MatchString("\\b"+regex+"\\b", arg)
+
+			cli.logger.Info("regex=%s, arg=%s", "\\b"+regex+"\\b", arg)
 			if match {
+				cli.logger.Info("match regex=%s, arg=%s", regex, arg)
 				commandElem = commandMap[regex]
 				commandMap = commandElem.commandMap
 				break
@@ -295,9 +298,10 @@ func (cli *GoCli) getCommandElemList(args ...string) []*CommandElem {
 						continue
 					}
 
-					cli.logger.Info("match")
+					cli.logger.Info("match arg=%s, regex=%s", arg, regex)
 					commandElem = commandMap[regex]
 					commandMap = commandElem.commandMap
+					cli.logger.Info("commandElem=%v, commandMap=%v", commandElem, commandMap)
 					break
 				}
 			}
@@ -322,9 +326,7 @@ func (cli *GoCli) getCommandElemList(args ...string) []*CommandElem {
 
 	if commandElem != nil {
 		cli.logger.Info("commandElem not nil")
-		if len(commandElem.commandMap) == 0 {
-			commandElemSlice = append(commandElemSlice, commandElem)
-		} else {
+		if len(commandElem.commandMap) != 0 {
 			for key := range commandElem.commandMap {
 				commandElemSlice = append(commandElemSlice, commandElem.commandMap[key])
 			}

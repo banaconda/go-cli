@@ -70,7 +70,7 @@ func parsePortRange(portRange string) (start, end uint16) {
 func (s *server) ShowRule(ctx context.Context, in *networker.RuleQuery) (*networker.RuleResponse, error) {
 	ruleListV4, err := netlink.RuleList(unix.AF_INET)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -78,7 +78,7 @@ func (s *server) ShowRule(ctx context.Context, in *networker.RuleQuery) (*networ
 	for _, rule := range ruleListV4 {
 		table := libutil.UnixTableIdToString(rule.Table)
 
-		netLogger.Info("%v", rule)
+		logger.Info("%v", rule)
 		if in.Table != "" && in.Table != table {
 			continue
 		}
@@ -104,7 +104,7 @@ func (s *server) ShowRule(ctx context.Context, in *networker.RuleQuery) (*networ
 func (s *server) AddRule(ctx context.Context, in *networker.RuleQuery) (*networker.RuleResponse, error) {
 	rule := netlink.NewRule()
 	rule.Table = libutil.StringToUnixTableId(in.Table)
-	netLogger.Info("in %v", in)
+	logger.Info("in %v", in)
 
 	if in.Src != "any" {
 		_, rule.Src, _ = net.ParseCIDR(in.Src)
@@ -147,7 +147,7 @@ func (s *server) AddRule(ctx context.Context, in *networker.RuleQuery) (*network
 
 	err := netlink.RuleAdd(rule)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -158,7 +158,7 @@ func (s *server) AddRule(ctx context.Context, in *networker.RuleQuery) (*network
 func (s *server) DelRule(ctx context.Context, in *networker.RuleQuery) (*networker.RuleResponse, error) {
 	ruleListV4, err := netlink.RuleList(netlink.FAMILY_V4)
 	if err != nil {
-		netLogger.Warn("%v\n", err)
+		logger.Warn("%v\n", err)
 		return nil, err
 	}
 
@@ -194,7 +194,7 @@ func (s *server) DelRule(ctx context.Context, in *networker.RuleQuery) (*network
 
 		err = netlink.RuleDel(&rule)
 		if err != nil {
-			netLogger.Warn("%v\n", err)
+			logger.Warn("%v\n", err)
 			return nil, err
 		}
 	}

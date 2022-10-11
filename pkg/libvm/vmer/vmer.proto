@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+option go_package = "pkg/libvmer/vmer";
+
+package vmer;
+service Vmer {
+    // show base images
+    rpc ShowBaseImages(BaseImageMessage) returns (stream BaseImageMessage) {}
+
+    // upload base image
+    rpc UploadBaseImage(BaseImageMessage) returns (BaseImageMessage){}
+
+    // delete base image
+    rpc DeleteBaseImage(BaseImageMessage) returns (BaseImageMessage){}
+
+
+    // show keys
+    rpc ShowKeys(KeyMessage) returns (stream KeyMessage) {}
+
+    // upload key
+    rpc UploadKey(KeyMessage) returns (KeyMessage){}
+
+    // create key
+    rpc CreateKey(KeyMessage) returns (KeyMessage){}
+
+    // delete key
+    rpc DeleteKey(KeyMessage) returns (KeyMessage){}
+
+
+    // show networks
+    rpc ShowNetworks(NetworkMessage) returns (stream NetworkMessage) {}
+
+    // create network
+    rpc CreateNetwork(NetworkMessage) returns (NetworkMessage){}
+
+    // delete network
+    rpc DeleteNetwork(NetworkMessage) returns (NetworkMessage){}
+
+
+    // show volume
+    rpc ShowVolumes(VolumeMessage) returns (stream VolumeMessage) {}
+
+    // create volume
+    rpc CreateVolume(VolumeMessage) returns (VolumeMessage){}
+
+    // delete volume
+    rpc DeleteVolume(VolumeMessage) returns (VolumeMessage){}
+
+
+    // show domains
+    rpc ShowDomains(DomainMessage) returns (stream DomainMessage) {}
+
+    // create domain
+    rpc CreateDomain(DomainMessage) returns (DomainMessage){}
+
+    // delete domain
+    rpc DeleteDomain(DomainMessage) returns (DomainMessage){}
+
+    // start domain
+    rpc StartDomain(DomainMessage) returns (DomainMessage){}
+
+    // stop domain
+    rpc StopDomain(DomainMessage) returns (DomainMessage){}
+}
+
+// base image message
+message BaseImageMessage {
+    string name = 1;
+    string path = 2;
+    string format = 3;
+    string size = 4;
+}
+
+// key message
+message KeyMessage {
+    string name = 1;
+    string username = 2;
+    string key = 3;
+    string path = 4;
+}
+
+// network message
+message NetworkMessage {
+    string name = 1;
+    int32 vlan = 2;
+    string cidr = 3;
+    string gateway = 4;
+    string dns = 5;
+}
+
+// volume message
+message VolumeMessage {
+    string name = 1;
+    string path = 2;
+    string format = 3;
+    string size = 4;
+    BaseImageMessage origin = 5;
+}
+
+// domain message
+message DomainMessage {
+    // domain state enum
+    enum State {
+        NOSTATE = 0;
+        RUNNING = 1;
+        BLOCKED = 2;
+        PAUSED = 3;
+        SHUTDOWN = 4;
+        SHUTOFF = 5;
+        CRASHED = 6;
+        PMSUSPENDED = 7;
+    }
+
+
+    string name = 1;
+    int64 vcpu = 2;
+    string memory = 3;
+    string mac = 4;
+    string ip = 5;
+    KeyMessage key = 6;
+    string diskSize = 7;
+    BaseImageMessage origin = 8;
+    NetworkMessage network = 9;
+    State state = 10;
+}
