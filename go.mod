@@ -1,6 +1,6 @@
 module go-cli
 
-go 1.19
+go 1.20
 
 require (
 	github.com/banaconda/nb-logger v1.1.0
