@@ -59,6 +59,8 @@ func initDomainCli(cli *libcli.GoCli) {
 		nce("image", "image name"),
 		nce(libutil.NameRegex, "base image name"),
 		nce("network", "network name"),
+		nce(libutil.NameRegex, ""),
+		nce("bridge", "bridge name"),
 		ncef(libutil.NameRegex, "", func(args []string) {
 			vcpu, err := strconv.ParseInt(args[5], 10, 64)
 			if err != nil {
@@ -67,15 +69,16 @@ func initDomainCli(cli *libcli.GoCli) {
 			}
 
 			_, err = client.CreateDomain(context.Background(), &vmer.DomainMessage{
-				Name:     args[3],
-				Vcpu:     vcpu,
-				Memory:   args[7],
-				Mac:      args[11],
-				Ip:       args[13],
-				Key:      &vmer.KeyMessage{Name: args[15]},
-				DiskSize: args[9],
-				Origin:   &vmer.BaseImageMessage{Name: args[17]},
-				Network:  &vmer.NetworkMessage{Name: args[19]},
+				Name:       args[3],
+				Vcpu:       vcpu,
+				Memory:     args[7],
+				Mac:        args[11],
+				Ip:         args[13],
+				Key:        &vmer.KeyMessage{Name: args[15]},
+				DiskSize:   args[9],
+				Origin:     &vmer.BaseImageMessage{Name: args[17]},
+				Network:    &vmer.NetworkMessage{Name: args[19]},
+				BridgeName: args[21],
 			})
 			if err != nil {
 				logger.Warn("%v", err)
@@ -102,6 +105,8 @@ func initDomainCli(cli *libcli.GoCli) {
 		nce("image", "image name"),
 		nce(libutil.NameRegex, "base image name"),
 		nce("network", "network name"),
+		nce(libutil.NameRegex, ""),
+		nce("bridge", "bridge name"),
 		ncef(libutil.NameRegex, "", func(args []string) {
 			vcpu, err := strconv.ParseInt(args[5], 10, 64)
 			if err != nil {
@@ -110,14 +115,15 @@ func initDomainCli(cli *libcli.GoCli) {
 			}
 
 			_, err = client.CreateDomain(context.Background(), &vmer.DomainMessage{
-				Name:     args[3],
-				Vcpu:     vcpu,
-				Memory:   args[7],
-				DiskSize: args[9],
-				Ip:       args[11],
-				Key:      &vmer.KeyMessage{Name: args[13]},
-				Origin:   &vmer.BaseImageMessage{Name: args[15]},
-				Network:  &vmer.NetworkMessage{Name: args[17]},
+				Name:       args[3],
+				Vcpu:       vcpu,
+				Memory:     args[7],
+				DiskSize:   args[9],
+				Ip:         args[11],
+				Key:        &vmer.KeyMessage{Name: args[13]},
+				Origin:     &vmer.BaseImageMessage{Name: args[15]},
+				Network:    &vmer.NetworkMessage{Name: args[17]},
+				BridgeName: args[19],
 			})
 			if err != nil {
 				logger.Warn("%v", err)
@@ -507,13 +513,15 @@ func generateDomainXML(domainMessage *vmer.DomainMessage, volumePath string) (st
 				<driver name='qemu' type='qcow2'/>
 				<source file='%s'/>
 				<target dev='vda' bus='virtio'/>
-				<address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+				<address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
 			</disk>
 			<interface type='bridge'>
+				<target dev='%s-port'/>
 				<mac address='%s'/>
-				<source bridge='br-int'/>
+				<source bridge='%s'/>
+				<virtualport type='openvswitch'/>
+				<address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
 				<model type='virtio'/>
-				<address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
 			</interface>
 			<graphics type='vnc' port='-1'/>
 			<serial type='pty'>
@@ -548,5 +556,5 @@ func generateDomainXML(domainMessage *vmer.DomainMessage, volumePath string) (st
 		}
 	}
 
-	return fmt.Sprintf(format, domainMessage.Name, uuid, domainMessage.Vcpu, memory, volumePath, mac), nil
+	return fmt.Sprintf(format, domainMessage.Name, uuid, domainMessage.Vcpu, memory, volumePath, domainMessage.Name, mac, domainMessage.BridgeName), nil
 }

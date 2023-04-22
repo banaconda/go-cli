@@ -121,5 +121,6 @@ message DomainMessage {
     string diskSize = 7;
     BaseImageMessage origin = 8;
     NetworkMessage network = 9;
-    State state = 10;
+    string bridgeName = 10;
+    State state = 11;
 }
